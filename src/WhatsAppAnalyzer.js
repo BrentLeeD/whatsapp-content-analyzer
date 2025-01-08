@@ -12,7 +12,7 @@ const WhatsAppAnalyzer = () => {
       return;
     }
 
-    // Remove formatting symbols for true character count
+    // Remove formatting symbols for da true character count
     const cleanText = text.replace(/[\*_~]/g, '');
     const characterCount = cleanText.length;
     
