@@ -1,0 +1,11 @@
+{
+    "buildCommand": "npm run build",
+    "outputLocation": "build",
+    "routes": [
+      {
+        "route": "/*",
+        "serve": "/index.html",
+        "statusCode": 200
+      }
+    ]
+  }
