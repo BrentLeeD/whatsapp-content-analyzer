@@ -4,147 +4,155 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Content Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
+        .gradient-bg {
+            background: linear-gradient(135deg, #dcfce7 0%, #dbeafe 100%);
         }
-
-        body {
-            overflow-y: auto;
-            overflow-x: hidden;
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
-        
-        .app-container {
-            min-height: 100%;
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .textarea-container {
+            position: relative;
+        }
+        .word-count {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
             width: 100%;
-            padding: 1rem;
-        }
-
-        #content-input {
-            resize: none;
-            height: 120px;
-        }
-
-        @media (max-height: 768px) {
-            .app-container {
-                padding: 0.5rem;
-            }
-            #content-input {
-                height: 80px;
-            }
         }
     </style>
 </head>
-<body class="bg-gray-50" onload="checkUrlParams()">
-    <div class="app-container">
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">WhatsApp Content Analyzer</h1>
+            <p class="text-gray-600">Whatsapp Content Pattern Analyzer</p>
+        </div>
+
         <!-- Input Section -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
-            <div class="p-4 border-b">
-                <h2 class="flex items-center gap-2 text-xl font-semibold">
-                    <i data-lucide="message-square" class="w-6 h-6 text-green-600"></i>
-                    WhatsApp Content Analyzer
-                </h2>
-            </div>
-            <div class="p-4">
-                <textarea
-                    id="content-input"
-                    class="w-full p-4 border rounded-md mb-4 font-mono text-gray-800"
+        <div class="card p-6 mb-8">
+            <div class="textarea-container">
+                <textarea 
+                    id="contentInput"
+                    class="w-full h-48 p-4 border rounded-lg font-mono text-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Paste your WhatsApp content here..."
                 ></textarea>
-                <button
-                    id="analyze-btn"
-                    class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                >
-                    Analyze
-                </button>
+                <div class="word-count">0 words</div>
             </div>
+            <button 
+                id="analyzeBtn"
+                class="mt-4 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+                Analyze Content
+            </button>
         </div>
-        <!-- Analysis Results (Initially Hidden) -->
-        <div id="analysis-results" class="hidden space-y-4">
-            <!-- Summary Box -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden bg-gradient-to-r from-green-50 to-blue-50">
-                <div class="p-6">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Length Category</p>
-                            <p id="length-category" class="text-lg font-semibold"></p>
-                            <p id="char-count" class="text-xs text-gray-500"></p>
-                        </div>
-                        
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Truncation Risk</p>
-                            <p id="truncation-risk" class="text-lg font-semibold"></p>
-                            <p id="line-count" class="text-xs text-gray-500"></p>
-                        </div>
 
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Reading Level</p>
-                            <p id="cefr-level" class="text-lg font-semibold text-blue-600"></p>
-                            <p class="text-xs text-gray-500">CEFR Scale</p>
-                        </div>
-
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Structure</p>
-                            <p id="paragraph-count" class="text-lg font-semibold text-gray-800"></p>
-                            <p id="words-per-paragraph" class="text-xs text-gray-500"></p>
-                        </div>
+        <!-- Results Section (initially hidden) -->
+        <div id="results" class="space-y-8 hidden">
+            <!-- Quick Summary -->
+            <div class="card gradient-bg p-6">
+                <h2 class="text-xl font-semibold mb-4">Quick Summary</h2>
+                <div class="bg-white/70 p-4 rounded-lg mb-4">
+                    <p class="text-sm text-gray-700">
+                        <span class="font-semibold">Top performing lifehacks typically:</span>
+                        <br>• Stay under 600 characters with 80-100 words
+                        <br>• Use a balanced mix of formatting (bold, italics, emojis)
+                        <br>• Connect universal principles with personal action
+                        <br>• Include both emotional resonance and practical steps
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600">Length</p>
+                        <p id="lengthCategory" class="text-lg font-semibold">-</p>
+                        <p id="wordCount" class="text-xs text-gray-500">- words</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600">Truncation Risk</p>
+                        <p id="truncationRisk" class="text-lg font-semibold">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600">Content Balance</p>
+                        <p id="contentBalance" class="text-lg font-semibold">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600">Format Variety</p>
+                        <p id="formatVariety" class="text-lg font-semibold">-</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Detailed Analysis -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Content Structure -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="p-4 border-b">
-                        <h3 class="flex items-center gap-2 text-lg font-semibold">
-                            <i data-lucide="layout" class="w-5 h-5"></i>
-                            Content Structure
-                        </h3>
-                    </div>
-                    <div class="p-4">
-                        <div class="space-y-3">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Formatting Used:</p>
-                                <div class="flex gap-4 mt-1">
-                                    <span id="bold-count">Bold: 0</span>
-                                    <span id="italic-count">Italic: 0</span>
-                                    <span id="bullet-count">Bullets: 0</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Rich Elements:</p>
-                                <div class="flex gap-4 mt-1">
-                                    <span id="emoji-count">Emojis: 0</span>
-                                    <span id="link-count">Links: 0</span>
-                                    <span id="hashtag-count">Hashtags: 0</span>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Pattern Analysis -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4">Content Pattern Analysis</h2>
+                    <div class="chart-container">
+                        <canvas id="patternChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Readability Analysis -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="p-4 border-b">
-                        <h3 class="flex items-center gap-2 text-lg font-semibold">
-                            <i data-lucide="book" class="w-5 h-5"></i>
-                            Readability Analysis
-                        </h3>
-                    </div>
-                    <div class="p-4">
-                        <div class="space-y-3">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Grade Level:</p>
-                                <p id="flesch-kincaid">Flesch-Kincaid: 0</p>
+                <!-- Detailed Analysis -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4">Detailed Analysis</h2>
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="font-semibold mb-2">Language Patterns</h3>
+                    <p class="text-xs text-gray-600 mb-2 italic">Best performing posts balance emotional words (happiness, freedom) with practical action words (start, create, do)</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                    <p id="emotionalWords">Emotional Words: -</p>
+                                    <p id="actionWords">Action Words: -</p>
+                                </div>
+                                <div>
+                                    <p id="examples">Examples Used: -</p>
+                                    <p id="methods">Methods Shown: -</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">CEFR Level Explained:</p>
-                                <p id="cefr-explanation" class="text-sm text-gray-600"></p>
+                        </div>
+
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="font-semibold mb-2">Structure</h3>
+                    <p class="text-xs text-gray-600 mb-2 italic">Most engaging posts use 3-4 paragraphs with clear purpose: principle → example → application</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                    <p id="paragraphs">Paragraphs: -</p>
+                                    <p id="sentences">Sentences: -</p>
+                                </div>
+                                <div>
+                                    <p id="wordsPerSentence">Words/Sentence: -</p>
+                                    <p id="complexWords">Complex Words: -</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h3 class="font-semibold mb-2">Formatting</h3>
+                    <p class="text-xs text-gray-600 mb-2 italic">Effective posts use bold for key points, 2-3 emojis for emphasis, and break text into scannable sections</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                    <p id="boldText">Bold Text: -</p>
+                                    <p id="italics">Italics: -</p>
+                                </div>
+                                <div>
+                                    <p id="bullets">Bullet Points: -</p>
+                                    <p id="emojis">Emojis: -</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -154,139 +162,152 @@
     </div>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons({
-            attrs: {
-                class: ["w-6 h-6"],
-                strokeWidth: "1.5"
-            }
-        });
- function checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const content = urlParams.get('content');
-            
-            if (content) {
-                // Decode the content and put it in the textarea
-                const decodedContent = decodeURIComponent(content);
-                document.getElementById('content-input').value = decodedContent;
-                // Automatically trigger analysis
-                analyzeContent();
-            }
-        }
+        // Initialize variables
+        let patternChart = null;
+
         // Helper functions
-        function countSyllables(word) {
-            if (word.length <= 3) return 1;
-            word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
-            word = word.replace(/^y/, '');
-            const syllables = word.match(/[aeiouy]{1,2}/g);
-            return syllables ? syllables.length : 1;
-        }
-
-        function calculateFleschKincaid(words, sentences, syllables) {
-            if (sentences === 0) return 0;
-            return 0.39 * (words / sentences) + 11.8 * (syllables / words) - 15.59;
-        }
-
-        function estimateCEFR(fleschKincaid) {
-            if (fleschKincaid <= 3) return 'A1';
-            if (fleschKincaid <= 5) return 'A2';
-            if (fleschKincaid <= 7) return 'B1';
-            if (fleschKincaid <= 10) return 'B2';
-            if (fleschKincaid <= 13) return 'C1';
-            return 'C2';
-        }
-
-        function getLengthCategory(chars) {
-            if (chars <= 500) return { category: 'Concise', color: 'text-green-600' };
-            if (chars <= 700) return { category: 'Golden', color: 'text-green-600' };
-            if (chars <= 900) return { category: 'Extended', color: 'text-yellow-600' };
-            if (chars <= 1100) return { category: 'Long', color: 'text-orange-600' };
-            return { category: 'Very Long', color: 'text-red-600' };
-        }
-
-        // Main analysis function
-        function analyzeContent() {
-            const text = document.getElementById('content-input').value;
-            
-            if (!text.trim()) {
-                document.getElementById('analysis-results').classList.add('hidden');
-                return;
-            }
-
-            // Remove formatting symbols for true character count
-            const cleanText = text.replace(/[\*_~]/g, '');
-            const characterCount = cleanText.length;
-            
-            // Content structure analysis
-            const lines = text.split('\n').filter(line => line.trim().length > 0);
-            const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
-            const words = cleanText.match(/\b\w+\b/g) || [];
-            
-            // Calculate reading metrics
-            const syllableCount = words.reduce((count, word) => {
-                return count + countSyllables(word.toLowerCase());
+        const countPatterns = (text, patterns) => {
+            return patterns.reduce((count, pattern) => {
+                const regex = new RegExp(`\\b${pattern}\\b`, 'gi');
+                const matches = text.match(regex) || [];
+                return count + matches.length;
             }, 0);
-            
-            const fleschKincaid = calculateFleschKincaid(words.length, paragraphs.length, syllableCount);
-            const cefr = estimateCEFR(fleschKincaid);
+        };
 
-            // Format analysis
+        const analyzeContent = (text) => {
+            // Clean text
+            const cleanText = text.replace(/[\*_~]/g, '');
+            
+            // Basic metrics
+            const words = cleanText.match(/\b\w+\b/g) || [];
+            const sentences = cleanText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const paragraphs = cleanText.split('\n\n').filter(p => p.trim().length > 0);
+            
+            // Patterns
+            const patterns = {
+                emotional: ['happiness', 'love', 'hope', 'fear', 'anxiety', 'courage', 'dream'],
+                practical: ['do', 'make', 'start', 'create', 'try', 'begin'],
+                examples: ['example', 'like', 'such as', 'instance'],
+                methods: ['how', 'way', 'step', 'process', 'approach']
+            };
+
+            // Formatting
             const formatting = {
                 bold: (text.match(/\*(.*?)\*/g) || []).length,
                 italics: (text.match(/_(.*?)_/g) || []).length,
-                bulletPoints: (text.match(/^[•\-\*]\s/gm) || []).length,
+                bullets: (text.match(/^[•\-\*]\s/gm) || []).length,
+                emojis: (text.match(/[\p{Extended_Pictographic}]/gu) || []).length
             };
 
-            // Media and engagement elements
-            const emojiCount = (text.match(/[\p{Emoji}]/gu) || []).length;
-            const urls = (text.match(/https?:\/\/[^\s]+/g) || []);
-            const hashtags = (text.match(/#[^\s#]+/g) || []);
+            return {
+                metrics: {
+                    wordCount: words.length,
+                    sentenceCount: sentences.length,
+                    paragraphCount: paragraphs.length,
+                    avgWordsPerSentence: (words.length / sentences.length).toFixed(1)
+                },
+                patterns: {
+                    emotional: countPatterns(cleanText, patterns.emotional),
+                    practical: countPatterns(cleanText, patterns.practical),
+                    examples: countPatterns(cleanText, patterns.examples),
+                    methods: countPatterns(cleanText, patterns.methods)
+                },
+                formatting
+            };
+        };
 
-            // Update the UI
-            const lengthCategory = getLengthCategory(characterCount);
-            document.getElementById('length-category').className = `text-lg font-semibold ${lengthCategory.color}`;
-            document.getElementById('length-category').textContent = lengthCategory.category;
-            document.getElementById('char-count').textContent = `${characterCount} characters`;
-
-            const truncationRisk = lines.length > 8 ? 'High' : 'Low';
-            document.getElementById('truncation-risk').className = `text-lg font-semibold ${truncationRisk === 'High' ? 'text-red-600' : 'text-green-600'}`;
-            document.getElementById('truncation-risk').textContent = truncationRisk;
-            document.getElementById('line-count').textContent = `${lines.length} lines`;
-
-            document.getElementById('cefr-level').textContent = cefr;
-            document.getElementById('paragraph-count').textContent = `${paragraphs.length} paragraphs`;
-            document.getElementById('words-per-paragraph').textContent = `~${Math.round(words.length / paragraphs.length)} words each`;
-
-            document.getElementById('bold-count').textContent = `Bold: ${formatting.bold}`;
-            document.getElementById('italic-count').textContent = `Italic: ${formatting.italics}`;
-            document.getElementById('bullet-count').textContent = `Bullets: ${formatting.bulletPoints}`;
-
-            document.getElementById('emoji-count').textContent = `Emojis: ${emojiCount}`;
-            document.getElementById('link-count').textContent = `Links: ${urls.length}`;
-            document.getElementById('hashtag-count').textContent = `Hashtags: ${hashtags.length}`;
-
-            document.getElementById('flesch-kincaid').textContent = `Flesch-Kincaid: ${Math.round(fleschKincaid * 10) / 10}`;
-
-            const cefrExplanation = cefr === 'B2' ? 
-                'Upper Intermediate - suitable for most WhatsApp users' :
-                cefr === 'B1' ?
-                'Intermediate - ideal for wide reach' :
-                cefr === 'C1' || cefr === 'C2' ?
-                'Advanced - consider simplifying for broader reach' :
-                'Basic - very accessible to most readers';
+        const updateUI = (analysis) => {
+            // Update summary metrics
+            document.getElementById('wordCount').textContent = `${analysis.metrics.wordCount} words`;
+            document.getElementById('lengthCategory').textContent = 
+                analysis.metrics.wordCount <= 100 ? 'Optimal' :
+                analysis.metrics.wordCount <= 150 ? 'Extended' : 'Long';
+            document.getElementById('truncationRisk').textContent = 
+                analysis.metrics.paragraphCount > 3 ? 'High' : 'Low';
             
-            document.getElementById('cefr-explanation').textContent = cefrExplanation;
+            // Update detailed metrics
+            document.getElementById('emotionalWords').textContent = 
+                `Emotional Words: ${analysis.patterns.emotional}`;
+            document.getElementById('actionWords').textContent = 
+                `Action Words: ${analysis.patterns.practical}`;
+            document.getElementById('examples').textContent = 
+                `Examples Used: ${analysis.patterns.examples}`;
+            document.getElementById('methods').textContent = 
+                `Methods Shown: ${analysis.patterns.methods}`;
+            
+            // Update structure metrics
+            document.getElementById('paragraphs').textContent = 
+                `Paragraphs: ${analysis.metrics.paragraphCount}`;
+            document.getElementById('sentences').textContent = 
+                `Sentences: ${analysis.metrics.sentenceCount}`;
+            document.getElementById('wordsPerSentence').textContent = 
+                `Words/Sentence: ${analysis.metrics.avgWordsPerSentence}`;
+            
+            // Update formatting metrics
+            document.getElementById('boldText').textContent = 
+                `Bold Text: ${analysis.formatting.bold}`;
+            document.getElementById('italics').textContent = 
+                `Italics: ${analysis.formatting.italics}`;
+            document.getElementById('bullets').textContent = 
+                `Bullet Points: ${analysis.formatting.bullets}`;
+            document.getElementById('emojis').textContent = 
+                `Emojis: ${analysis.formatting.emojis}`;
 
+            // Update chart
+            updateChart(analysis);
+            
             // Show results
-            document.getElementById('analysis-results').classList.remove('hidden');
-        }
+            document.getElementById('results').classList.remove('hidden');
+        };
 
-        // Event listeners
-        document.getElementById('analyze-btn').addEventListener('click', analyzeContent);
-        document.getElementById('content-input').addEventListener('keyup', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                analyzeContent();
+        const updateChart = (analysis) => {
+            const ctx = document.getElementById('patternChart').getContext('2d');
+            
+            if (patternChart) {
+                patternChart.destroy();
             }
+
+            patternChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Emotional Depth', 'Practical Value', 'Examples', 'Methods', 'Format Variety'],
+                    datasets: [{
+                        label: 'Content Analysis',
+                        data: [
+                            analysis.patterns.emotional * 10,
+                            analysis.patterns.practical * 10,
+                            analysis.patterns.examples * 20,
+                            analysis.patterns.methods * 15,
+                            Object.values(analysis.formatting).reduce((a, b) => a + b, 0) * 10
+                        ],
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        borderColor: 'rgba(34, 197, 94, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        };
+
+        // Event Listeners
+        document.getElementById('analyzeBtn').addEventListener('click', () => {
+            const text = document.getElementById('contentInput').value;
+            if (text.trim()) {
+                const analysis = analyzeContent(text);
+                updateUI(analysis);
+            }
+        });
+
+        document.getElementById('contentInput').addEventListener('input', (e) => {
+            const words = e.target.value.match(/\b\w+\b/g) || [];
+            document.querySelector('.word-count').textContent = `${words.length} words`;
         });
     </script>
 </body>
